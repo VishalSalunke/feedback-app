@@ -10,7 +10,13 @@ const feedbackRoutes = require('./routes/feedback');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? 'https://your-frontend-domain.com' 
+    : '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Routes
@@ -33,11 +39,21 @@ app.use((err, req, res, next) => {
 // Only start the server if this file is run directly (not when imported for tests)
 if (require.main === module) {
   // MongoDB Connection
-  mongoose.connect(process.env.MONGODB_URI)
+  if (!process.env.MONGO_URI) {
+    console.error('MONGO_URI is not defined in environment variables');
+    process.exit(1);
+  }
+  
+  mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('Connected to MongoDB'))
-    .catch((err) => console.error('MongoDB connection error:', err));
+    .catch((err) => {
+      console.error('MongoDB connection error:', err);
+      process.exit(1);
+    });
 
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT || 3030; // Default to 3030 if not specified
+  console.log('Attempting to start server on port:', PORT);
+  console.log('Environment variables:', { PORT: process.env.PORT });
   const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

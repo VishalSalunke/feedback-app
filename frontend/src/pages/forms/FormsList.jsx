@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formsAPI } from '../../services/api';
+import { getFormUrl } from '../../utils/urls';
 import Sidebar from '../../components/Sidebar';
 
 const FormsList = () => {
@@ -54,9 +55,10 @@ const FormsList = () => {
     fetchForms();
   }, []);
 
+  // Use the centralized URL utility
   const getPublicUrl = (formId) => {
     if (!formId) return 'Invalid form ID';
-    return `${window.location.origin}/form/${formId}`;
+    return getFormUrl(formId);
   };
 
   const copyToClipboard = (text) => {

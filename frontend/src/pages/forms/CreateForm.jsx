@@ -1,26 +1,25 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { getApiUrl, getFormUrl } from "../../utils/urls";
+import axios from "axios";
 
 const CreateForm = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    title: '',
-    questions: [
-      { text: '', type: 'text' }
-    ]
+    title: "",
+    questions: [{ text: "", type: "text" }],
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [formUrl, setFormUrl] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [formUrl, setFormUrl] = useState("");
 
   const handleTitleChange = (e) => {
     setFormData({
       ...formData,
-      title: e.target.value
+      title: e.target.value,
     });
   };
 
@@ -28,40 +27,37 @@ const CreateForm = () => {
     const updatedQuestions = [...formData.questions];
     updatedQuestions[index] = {
       ...updatedQuestions[index],
-      [field]: value
+      [field]: value,
     };
     setFormData({
       ...formData,
-      questions: updatedQuestions
+      questions: updatedQuestions,
     });
   };
 
   const addQuestion = () => {
     setFormData({
       ...formData,
-      questions: [
-        ...formData.questions,
-        { text: '', type: 'text' }
-      ]
+      questions: [...formData.questions, { text: "", type: "text" }],
     });
   };
 
   const removeQuestion = (index) => {
     if (formData.questions.length === 1) return; // Keep at least one question
-    
+
     const updatedQuestions = formData.questions.filter((_, i) => i !== index);
     setFormData({
       ...formData,
-      questions: updatedQuestions
+      questions: updatedQuestions,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Basic validation
     if (!formData.title.trim()) {
-      setError('Please enter a form title');
+      setError("Please enter a form title");
       return;
     }
 
@@ -74,34 +70,36 @@ const CreateForm = () => {
 
     try {
       setIsSubmitting(true);
-      setError('');
-      setSuccess('');
-      
+      setError("");
+      setSuccess("");
+
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/forms`,
+        getApiUrl('/api/forms'),
         formData,
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
-      console.log('Form creation response:', response);
-      
+      console.log("Form creation response:", response);
+
       if (response.data && (response.data._id || response.data.form?._id)) {
         const formId = response.data._id || response.data.form._id;
-        setSuccess('Form created successfully!');
-        const publicUrl = `${window.location.origin}/form/${formId}`; // Note: Changed from /forms/ to /form/ to match public route
+        setSuccess("Form created successfully!");
+        const publicUrl = getFormUrl(formId);
         setFormUrl(publicUrl);
       } else {
-        throw new Error('Unexpected response format from server');
+        throw new Error("Unexpected response format from server");
       }
-      
     } catch (err) {
-      console.error('Error creating form:', err);
-      setError(err.response?.data?.message || 'Failed to create form. Please try again.');
+      console.error("Error creating form:", err);
+      setError(
+        err.response?.data?.message ||
+          "Failed to create form. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -109,7 +107,7 @@ const CreateForm = () => {
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(formUrl);
-    alert('URL copied to clipboard!');
+    alert("URL copied to clipboard!");
   };
 
   return (
@@ -117,16 +115,18 @@ const CreateForm = () => {
       <div className="max-w-3xl mx-auto">
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h1 className="text-2xl font-semibold text-gray-900">Create New Feedback Form</h1>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              Create New Feedback Form
+            </h1>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="p-6">
             {error && (
               <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-md">
                 {error}
               </div>
             )}
-            
+
             {success ? (
               <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-md">
                 <p className="font-medium">{success}</p>
@@ -148,10 +148,10 @@ const CreateForm = () => {
                 <button
                   type="button"
                   onClick={() => {
-                    setSuccess('');
+                    setSuccess("");
                     setFormData({
-                      title: '',
-                      questions: [{ text: '', type: 'text' }]
+                      title: "",
+                      questions: [{ text: "", type: "text" }],
                     });
                   }}
                   className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -162,7 +162,10 @@ const CreateForm = () => {
             ) : (
               <>
                 <div className="mb-6">
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="title"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     Form Title *
                   </label>
                   <input
@@ -179,7 +182,9 @@ const CreateForm = () => {
 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-lg font-medium text-gray-900">Questions</h2>
+                    <h2 className="text-lg font-medium text-gray-900">
+                      Questions
+                    </h2>
                     <button
                       type="button"
                       onClick={addQuestion}
@@ -190,9 +195,14 @@ const CreateForm = () => {
                   </div>
 
                   {formData.questions.map((question, index) => (
-                    <div key={index} className="border border-gray-200 rounded-md p-4 bg-gray-50">
+                    <div
+                      key={index}
+                      className="border border-gray-200 rounded-md p-4 bg-gray-50"
+                    >
                       <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-sm font-medium text-gray-700">Question {index + 1}</h3>
+                        <h3 className="text-sm font-medium text-gray-700">
+                          Question {index + 1}
+                        </h3>
                         {formData.questions.length > 1 && (
                           <button
                             type="button"
@@ -203,30 +213,40 @@ const CreateForm = () => {
                           </button>
                         )}
                       </div>
-                      
+
                       <div className="mb-3">
-                        <label htmlFor={`question-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                          htmlFor={`question-${index}`}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
                           Question Text *
                         </label>
                         <input
                           type="text"
                           id={`question-${index}`}
                           value={question.text}
-                          onChange={(e) => handleQuestionChange(index, 'text', e.target.value)}
+                          onChange={(e) =>
+                            handleQuestionChange(index, "text", e.target.value)
+                          }
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                           placeholder="Enter your question"
                           required
                         />
                       </div>
-                      
+
                       <div>
-                        <label htmlFor={`type-${index}`} className="block text-sm font-medium text-gray-700 mb-1">
+                        <label
+                          htmlFor={`type-${index}`}
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
                           Answer Type *
                         </label>
                         <select
                           id={`type-${index}`}
                           value={question.type}
-                          onChange={(e) => handleQuestionChange(index, 'type', e.target.value)}
+                          onChange={(e) =>
+                            handleQuestionChange(index, "type", e.target.value)
+                          }
                           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                         >
                           <option value="text">Text Answer</option>
@@ -241,7 +261,7 @@ const CreateForm = () => {
                 <div className="mt-8 flex justify-end space-x-3">
                   <button
                     type="button"
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate("/dashboard")}
                     className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   >
                     Cancel
@@ -251,7 +271,7 @@ const CreateForm = () => {
                     disabled={isSubmitting}
                     className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? 'Creating...' : 'Create Form'}
+                    {isSubmitting ? "Creating..." : "Create Form"}
                   </button>
                 </div>
               </>

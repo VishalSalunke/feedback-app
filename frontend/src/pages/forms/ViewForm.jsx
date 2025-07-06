@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formsAPI } from '../../services/api';
+import { getApiUrl } from '../../utils/urls';
+import axios from 'axios';
 
 const ViewForm = () => {
   const { id } = useParams();
@@ -13,7 +14,16 @@ const ViewForm = () => {
     const fetchForm = async () => {
       try {
         setLoading(true);
-        const response = await formsAPI.getForm(id);
+        const response = await axios.get(
+          getApiUrl(`/api/forms/${id}`),
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              // Add authorization if needed
+              // 'Authorization': `Bearer ${token}`
+            }
+          }
+        );
         setForm(response.data);
       } catch (err) {
         console.error('Error fetching form:', err);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { formsAPI, feedbackAPI } from '../../services/api';
+import { getApiUrl } from '../../utils/urls';
+import axios from 'axios';
 
 // Thumbs up/down component for boolean votes
 const BooleanVote = ({ value, onChange }) => {
@@ -64,7 +65,15 @@ const FeedbackForm = () => {
     const fetchForm = async () => {
       try {
         setLoading(true);
-        const response = await formsAPI.getForm(id);
+        // Use the centralized API URL utility
+      const response = await axios.get(
+        getApiUrl(`/api/forms/${id}`),
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
         setForm(response.data);
         
         // Initialize form data with empty values
@@ -141,10 +150,18 @@ const FeedbackForm = () => {
 
       console.log('Submitting feedback:', { formId: id, answers });
       
-      const response = await feedbackAPI.submitFeedback({
-        formId: id,
-        answers
-      });
+      const response = await axios.post(
+        getApiUrl('/api/feedback'),
+        {
+          formId: id,
+          answers
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
 
       console.log('Feedback submission response:', response);
       setSubmitSuccess(true);
