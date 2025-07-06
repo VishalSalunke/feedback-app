@@ -9,14 +9,32 @@ const feedbackRoutes = require('./routes/feedback');
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://your-frontend-domain.com' 
-    : '*',
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5000',  // Local development
+      'http://localhost:3000',  // Common React dev server port
+      'https://feedback-app-five-pi.vercel.app',  // Your Vercel domain
+      'https://*.vercel.app'    // Any Vercel preview deployments
+    ];
+
+    if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+// Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Routes
